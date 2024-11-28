@@ -1,6 +1,5 @@
 [tool.black]
-    metadata_filter = '{"tags": ["keep_outputs"]}'
-    include = '\.pyi?$|\.ipynb$'
+    include = '\.pyi?$'
     exclude = '''
     /(
         \.git
