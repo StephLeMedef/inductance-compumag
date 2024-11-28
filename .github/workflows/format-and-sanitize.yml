@@ -31,7 +31,7 @@ jobs:
 
     - name: Run Nbqa-Black Formatter .ipynb files
       run: |
-        black . --line-length 120
+        nbqa black . --line-length 120
 
     - name: Sanitize Jupyter Notebooks
       run: |
