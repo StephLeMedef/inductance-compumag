@@ -25,7 +25,11 @@ jobs:
       run: |
         pip install black nbqa pre-commit nb_clean
 
-    - name: Run Black Formatter
+    - name: Run Black Formatter on .py files
+      run: |
+        black . --line-length 120
+
+    - name: Run Nbqa-Black Formatter .ipynb files
       run: |
         black . --line-length 120
 
