@@ -23,19 +23,19 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install black nbqa pre-commit nb_clean
+        pip install black nbqa nb_clean
 
     - name: Run Black Formatter on .py files
       run: |
         black . --line-length 120
 
-    - name: Run Nbqa-Black Formatter .ipynb files
-      run: |
-        nbqa black . --line-length 120
-
     - name: Sanitize Jupyter Notebooks
       run: |
         nb-clean clean .
+
+    - name: Run Nbqa-Black Formatter .ipynb files
+      run: |
+        nbqa black . --line-length 120
 
     - name: Commit and Push Changes
       run: |
