@@ -23,7 +23,7 @@ jobs:
 
     - name: Install dependencies
       run: |
-        pip install black nbqa pre-commit
+        pip install black nbqa pre-commit nbstripout
 
     - name: Run Black Formatter
       run: |
@@ -31,8 +31,7 @@ jobs:
 
     - name: Sanitize Jupyter Notebooks
       run: |
-        nbqa black . --line-length 120
-        nbqa clean .  # Clean notebook outputs
+        find . -name "*.ipynb" | xargs nbstripout
 
     - name: Commit and Push Changes
       run: |
