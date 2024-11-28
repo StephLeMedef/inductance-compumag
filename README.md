@@ -14,4 +14,4 @@ git checkout dev
 pip install nbconvert
 pip install "black[jupyter]"
 pip install -U "nbqa[toolchain]"
-$ python -m pip install -U nbqa
+
