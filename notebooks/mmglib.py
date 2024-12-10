@@ -4,9 +4,9 @@ import os
 # Load the shared library
 if os.name == "nt":  # Windows
     try:
-        mmg2d = ctypes.CDLL("lib\\mmg\\mmg2d.dll")
+        mmg2d = ctypes.CDLL("dependencies\\mmg\\mmg2d.dll")
     except FileNotFoundError:
-        mmg2d = ctypes.CDLL("..\\lib\\mmg\\mmg2d.dll")
+        mmg2d = ctypes.CDLL("..\\dependencies\\mmg\\mmg2d.dll")
 else:
     raise OSError("This script is only configured for Windows environments.")
 
