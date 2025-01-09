@@ -162,7 +162,7 @@ def gen_mesh(air_gap, maxh=2e-3):
     return ngs.Mesh(ngmesh)
 
 
-def gen_mesh2(airgap, maxh=2e-3):
+def gen_mesh2(airgap,  maxh=2e-3):
     """Gives a triangular mesh"""
     e11, e12, e21, e22 = airgap[0], airgap[1], airgap[2], airgap[3]
     r = 0.04
