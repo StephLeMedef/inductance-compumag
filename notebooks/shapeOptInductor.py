@@ -62,25 +62,27 @@ ha = 1e-2
 ba = 1e-2
 e = 5e-3
 
+
 def referenceVelocity(mesh):
-    fes1 = ngs.VectorH1(mesh, dirichlet = "airgap1")
+    fes1 = ngs.VectorH1(mesh, dirichlet="airgap1")
     v11 = ngs.GridFunction(fes1)
-    v11.Set(ngs.CF((0, 1-ngs.x / (a/2) )), ngs.BND)
+    v11.Set(ngs.CF((0, 1 - ngs.x / (a / 2))), ngs.BND)
     v12 = ngs.GridFunction(fes1)
-    v12.Set(ngs.CF((0, ngs.x / (a/2) )), ngs.BND)
-    fes2 = ngs.VectorH1(mesh, dirichlet = "airgap2")
+    v12.Set(ngs.CF((0, ngs.x / (a / 2))), ngs.BND)
+    fes2 = ngs.VectorH1(mesh, dirichlet="airgap2")
     v21 = ngs.GridFunction(fes2)
-    v21.Set(ngs.CF((0, 1-(ngs.x-(a / 2 + ba)) / (a/2) )), ngs.BND)
+    v21.Set(ngs.CF((0, 1 - (ngs.x - (a / 2 + ba)) / (a / 2))), ngs.BND)
     v22 = ngs.GridFunction(fes2)
-    v22.Set(ngs.CF((0, (ngs.x-(a / 2 + ba)) / (a/2) )), ngs.BND)
+    v22.Set(ngs.CF((0, (ngs.x - (a / 2 + ba)) / (a / 2))), ngs.BND)
     return v11, v12, v21, v22
+
 
 def gen_mesh(air_gap, maxh=2e-3):
     """Gives a triangular mesh"""
     r = 0.04
 
-    maxhFine = maxh/25
-    maxhMed = maxh/5
+    maxhFine = maxh / 25
+    maxhMed = maxh / 5
     geo = SplineGeometry()
     pnts = [
         (0, air_gap / 2),  # p1
@@ -162,12 +164,12 @@ def gen_mesh(air_gap, maxh=2e-3):
     return ngs.Mesh(ngmesh)
 
 
-def gen_mesh2(airgap,  maxh=2e-3):
+def gen_mesh2(airgap, maxh=2e-3):
     """Gives a triangular mesh"""
     e11, e12, e21, e22 = airgap[0], airgap[1], airgap[2], airgap[3]
     r = 0.04
-    maxhFine = maxh/25
-    maxhMed = maxh/5
+    maxhFine = maxh / 25
+    maxhMed = maxh / 5
     geo = SplineGeometry()
     pnts = [
         (0, e11 / 2),  # p1
