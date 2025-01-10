@@ -11,8 +11,6 @@ Start by running the Jupyter notebooks in the `notebooks` folder.
 
 ## Contents
 
-## Contents
-
 - dependencies
     - mmg
       - `mmg2d.dll` : dll file related to remeshing free-shapes with Mmg
