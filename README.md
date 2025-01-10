@@ -11,8 +11,19 @@ Start by running the Jupyter notebooks in the `notebooks` folder.
 
 ## Contents
 
-**NB** The code has been tested with success on Windows 11. It should also run on Linux except for the free-form due to the compilation of Mmg library.
+- dependencies
+    - mmg
+      - `mmg2d.dll` : dll file related to remeshing free-shapes with Mmg
+- notebooks
+    - `FREEFORM.ipynb`, `PARAMETRIC.ipynb`, `REFERENCE.ipynb`, `TAYLOR-TESTS.ipynb` : runable Jupyter notebooks
+    - `mmglib.py` : binder to Mmg utilities
+    - `shapeOptInductance.py` : module containing useful functions for shape optimization
+- `AUTHORS `
+- `LICENSE`
+- `Pipfile` : description of the environment (items can be installed with `pip`)
+- `README.md`
 
+**NB** The code has been tested with success on Windows 11. It should also run on Linux except for the free-form due to the compilation of Mmg library.
 
 ## License
 
