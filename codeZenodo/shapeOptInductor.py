@@ -26,18 +26,19 @@ nu0 = 1 / mu0
 R = ngs.CoefficientFunction((0, 1, -1, 0), dims=(2, 2))  # Rotation matrix of -90°
 Id = ngs.CoefficientFunction((1, 0, 0, 1), dims=(2, 2))  # Identity matrix
 
+
 def rot(a):
     """
     Compute the rotational (curl) of a scalar or vector field in 2D.
 
     This function applies the predefined rotation matrix `R` (representing a -90° rotation)
-    to the gradient of the input field `a`. The computation uses the `ngs.grad` function 
+    to the gradient of the input field `a`. The computation uses the `ngs.grad` function
     from NGSolve.
 
     Parameters
     ----------
     a : ngs.fem.CoefficientFunction
-        Input field (scalar or vector) defined in NGSolve for which the rotational 
+        Input field (scalar or vector) defined in NGSolve for which the rotational
         (curl) is to be computed.
 
     Returns
@@ -62,6 +63,7 @@ def rot(a):
     """
     return R * ngs.grad(a)
 
+
 ## GEOMETRY
 from netgen.geom2d import SplineGeometry
 
@@ -70,12 +72,13 @@ ha = 1e-2
 ba = 1e-2
 e = 5e-3
 
+
 def gen_mesh9(air_gap, maxh=2e-3):
     """
     Generate a 2D triangular mesh for a specific geometry with predefined boundary conditions and materials.
 
-    This function creates a triangular mesh using `SplineGeometry` to define the geometry of the system. 
-    It includes points, lines, and material regions, and applies specific boundary conditions. 
+    This function creates a triangular mesh using `SplineGeometry` to define the geometry of the system.
+    It includes points, lines, and material regions, and applies specific boundary conditions.
     The generated mesh is used for finite element analysis in NGSolve.
 
     Parameters
@@ -143,8 +146,23 @@ def gen_mesh9(air_gap, maxh=2e-3):
     ]
 
     pointH = [
-        maxh, maxhFine, maxhFine, maxhFine, maxhFine, maxhFine, maxh, 
-        maxh, maxh, maxh, maxh, maxh, maxh, maxh, maxhFine, maxhFine, maxh,
+        maxh,
+        maxhFine,
+        maxhFine,
+        maxhFine,
+        maxhFine,
+        maxhFine,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxhFine,
+        maxhFine,
+        maxh,
     ]
 
     (p1, p2, p3, p4, p5, p6, p7, p8, p001, p002, p003, p00, p01, p02, p03, p04, p05) = [
@@ -192,8 +210,8 @@ def gen_mesh2(airgap, maxh=2e-3):
     """
     Generate a 2D triangular mesh for a geometry with variable air gaps and predefined boundary conditions.
 
-    This function creates a triangular mesh using `SplineGeometry` to define a geometry with non-constant air gaps. 
-    Points, lines, and material regions are defined, along with specific boundary conditions. 
+    This function creates a triangular mesh using `SplineGeometry` to define a geometry with non-constant air gaps.
+    Points, lines, and material regions are defined, along with specific boundary conditions.
     The generated mesh can be used for finite element simulations in NGSolve.
 
     Parameters
@@ -265,8 +283,23 @@ def gen_mesh2(airgap, maxh=2e-3):
     ]
 
     pointH = [
-        maxh, maxhFine, maxhFine, maxhFine, maxhFine, maxhFine, maxh,
-        maxh, maxh, maxh, maxh, maxh, maxh, maxh, maxhFine, maxhFine, maxh,
+        maxh,
+        maxhFine,
+        maxhFine,
+        maxhFine,
+        maxhFine,
+        maxhFine,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxhFine,
+        maxhFine,
+        maxh,
     ]
 
     (p1, p2, p3, p4, p5, p6, p7, p8, p001, p002, p003, p00, p01, p02, p03, p04, p05) = [
@@ -312,12 +345,12 @@ def gen_mesh2(airgap, maxh=2e-3):
 
 def referenceVelocity(mesh):
     """
-    Generate reference velocity fields for the air gap regions of a mesh. This is useful to compute the parametric sensitivities 
+    Generate reference velocity fields for the air gap regions of a mesh. This is useful to compute the parametric sensitivities
     by a scalar product with shape derivatives.
 
-    This function defines vectorial velocity fields in the air gap regions of a mesh. 
-    These reference velocities are represented as `GridFunction` objects associated 
-    with `VectorH1` finite element spaces. The velocity fields are specifically defined 
+    This function defines vectorial velocity fields in the air gap regions of a mesh.
+    These reference velocities are represented as `GridFunction` objects associated
+    with `VectorH1` finite element spaces. The velocity fields are specifically defined
     on the boundaries of the air gap regions `airgap1` and `airgap2`.
 
     Parameters
@@ -362,14 +395,16 @@ def referenceVelocity(mesh):
 
     return v11, v12, v21, v22
 
+
 ## DISPLAY
+
 
 def create_plots(num_plots):
     """
     Create a specified number of side-by-side plots with grid enabled.
 
-    This function sets up a figure with `num_plots` subplots arranged in a single row, 
-    with grids enabled on each subplot. It also prepares a display handle for use in 
+    This function sets up a figure with `num_plots` subplots arranged in a single row,
+    with grids enabled on each subplot. It also prepares a display handle for use in
     Jupyter notebooks.
 
     Parameters
@@ -388,7 +423,7 @@ def create_plots(num_plots):
 
     Notes
     -----
-    - The figure width is scaled proportionally to the number of plots (`10 * num_plots`), 
+    - The figure width is scaled proportionally to the number of plots (`10 * num_plots`),
       with a fixed height of 8.
     - If `num_plots` is 1, the function ensures `axes` is returned as a list for consistency.
 
@@ -413,8 +448,8 @@ def update_plots(fig, axes, hdisplay, data, curve_labels, semilogy=False):
     """
     Update the content of multiple subplots with new data and refresh the display.
 
-    This function clears the existing content of each subplot, plots new data, and updates 
-    the display dynamically (e.g., in a Jupyter notebook). It supports both linear and 
+    This function clears the existing content of each subplot, plots new data, and updates
+    the display dynamically (e.g., in a Jupyter notebook). It supports both linear and
     logarithmic scaling for the y-axis.
 
     Parameters
@@ -426,10 +461,10 @@ def update_plots(fig, axes, hdisplay, data, curve_labels, semilogy=False):
     hdisplay : IPython.core.display.DisplayHandle
         A display handle used to dynamically update the output in Jupyter notebooks.
     data : list of list of list of float
-        A nested list of numerical data to plot. 
+        A nested list of numerical data to plot.
         `data[i][j]` represents the j-th curve for the i-th subplot.
     curve_labels : list of list of str
-        A nested list of labels for each curve in the subplots. 
+        A nested list of labels for each curve in the subplots.
         `curve_labels[i][j]` is the label for the j-th curve in the i-th subplot.
     semilogy : bool, optional
         If True, use a logarithmic scale for the y-axis. Defaults to False (linear scale).
@@ -441,7 +476,7 @@ def update_plots(fig, axes, hdisplay, data, curve_labels, semilogy=False):
 
     Notes
     -----
-    - The function assumes that `data` and `curve_labels` have matching shapes, 
+    - The function assumes that `data` and `curve_labels` have matching shapes,
       with the same number of curves for each subplot.
     - The x-axis limits are set dynamically to match the length of the curves.
     - The y-axis limits are adjusted based on the minimum and maximum values of the data.
