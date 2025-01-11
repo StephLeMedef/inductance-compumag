@@ -1,7 +1,7 @@
 # Inductor optimization
 
 
-[![GitHub license](https://img.shields.io/github/license/StephLeMedef/inductance-compumag)](https://github.com/StephLeMedef/inductance-compumag) [![GitHub release](https://img.shields.io/github/release/StephLeMedef/inductance-compumag.svg)](https://github.com/StephLeMedef/inductance-compumag/releases/)
+[![GitHub license](https://img.shields.io/github/license/StephLeMedef/inductance-compumag)](https://github.com/StephLeMedef/inductance-compumag) [![GitHub release](https://img.shields.io/github/release/StephLeMedef/inductance-compumag.svg)](https://github.com/StephLeMedef/inductance-compumag/releases/) [![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.14631426.svg)](https://doi.org/10.5281/zenodo.14631426)
 
 Parametric and free-shape air gap optimization of an inductor using [NGSolve](https://www.ngsolve.org/) and [Mmg](http://www.mmgtools.org/).
 
@@ -24,6 +24,27 @@ Start by running the Jupyter notebooks in the `notebooks` folder.
 - `README.md`
 
 **NB** The code has been tested with success on Windows 11. It should also run on Linux except for the free-form due to the compilation of Mmg library.
+
+## Citation
+
+Please use the following citation reference if you use the code:
+
+    S. Gaydier, I. Zehavi, T. Cherrière and P. Gangl. StephLeMedef/inductance-compumag (v0.1), January 2025. Zenodo. https://doi.org/10.5281/zenodo.14631426
+
+Bibtex entry:
+
+    @software{StephLeMedef2025,
+    author       = {Gaydier, St{\'e}phane and Zehavi, Ita{\"i} and Cherri{\`e}re, Th{\'e}odore and Gangl, Peter},
+    title        = {StephLeMedef/inductance-compumag},
+    month        = jan,
+    year         = 2025,
+    publisher    = {Zenodo},
+    version      = {v0.1},
+    doi          = {10.5281/zenodo.14631426},
+    url          = {https://doi.org/10.5281/zenodo.7701776}
+    }
+
+**NB: version number and DOI must be adapted from [Zenodo's repository.](https://doi.org/10.5281/zenodo.7701776)** 
 
 ## License
 
