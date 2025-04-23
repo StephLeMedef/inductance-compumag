@@ -7,8 +7,13 @@ if os.name == "nt":  # Windows
         mmg2d = ctypes.CDLL("dependencies\\mmg\\mmg2d.dll")
     except FileNotFoundError:
         mmg2d = ctypes.CDLL("..\\dependencies\\mmg\\mmg2d.dll")
+elif os.name == "posix":  # Linux
+    try:
+        mmg2d = ctypes.CDLL("dependencies/mmg/libmmg2d.so")
+    except OSError:
+        mmg2d = ctypes.CDLL("../dependencies/mmg/libmmg2d.so")
 else:
-    raise OSError("This script is only configured for Windows environments.")
+    raise OSError("This script is only configured for Windows and Linux environments.")
 
 # Variadic argument constants
 MMG5_ARG_start = 1
@@ -265,9 +270,11 @@ def init_mmgmesh_from_ngmesh(ngmesh, mmgMesh):
     base_index = max_index
 
     # Write Triangles
+    label_to_region = dict()
     for i, triangle in enumerate(ngmesh.Elements2D()):
         p0, p1, p2 = triangle.points
         label = get_index(triangle.index, 2)
+        label_to_region[label] = (triangle.index, ngmesh.GetMaterial(triangle.index))
         code = mmg2d.MMG2D_Set_triangle(mmgMesh, p0.nr, p1.nr, p2.nr, label, i + 1)
         if code != 1:
             raise RuntimeError(f"Failed to set triangle. {code=}")
@@ -275,9 +282,7 @@ def init_mmgmesh_from_ngmesh(ngmesh, mmgMesh):
     # Update base index for tetrahedra
     base_index = max_index
 
-    region_names = ngmesh.GetRegionNames(2)
-
-    return mmgMesh, region_names, bc_names
+    return mmgMesh, label_to_region, bc_names
 
 
 def copy_ngmesh(ngmesh):
@@ -316,7 +321,7 @@ def copy_ngmesh(ngmesh):
     return new_ngmesh
 
 
-def init_ngmesh_from_mmgmesh(mmgMesh, region_names, bc_names):
+def init_ngmesh_from_mmgmesh(mmgMesh, label_to_region, bc_names):
     ngmesh = netgen.meshing.Mesh(dim=2)
     nb_vertices = ctypes.c_int(0)
     nb_edges = ctypes.c_int(0)
@@ -416,12 +421,24 @@ def init_ngmesh_from_mmgmesh(mmgMesh, region_names, bc_names):
             required_triangles += 1
     # print(f"found {required_triangles=} required triangles")
 
-    netgen_region_ids = []
-    for i in range(len(region_names)):
-        netgen_region_ids.append(ngmesh.AddRegion(region_names[i], dim=2))
+    sorted_map = sorted(label_to_region.items(), key=lambda item: item[1][0], reverse=True)
+    sorted_regions = [sorted_map[i][1] for i  in range(len(sorted_map))]
 
-    mmg_region_indices = list(sorted(set_index))
-    dict_region_names = dict(map(lambda i, j: (i, j), mmg_region_indices, netgen_region_ids))
+    index = 1
+    completed_regions = []
+    while len(sorted_regions) > 0 and index < 100:
+        region_index = sorted_regions[-1][0]
+        if region_index > index:
+            completed_regions.append("default")
+        elif region_index == index:
+            completed_regions.append(sorted_regions[-1][1])
+            del sorted_regions[-1]
+        else:
+            raise ValueError("Index error. Must check the code")
+        index += 1
+
+    for i in range(len(completed_regions)):
+        ngmesh.AddRegion(completed_regions[i], dim=2)
 
     # Add triangles
     for i in range(nb_triangles.value):
@@ -446,7 +463,7 @@ def init_ngmesh_from_mmgmesh(mmgMesh, region_names, bc_names):
             pnums[p1nr.value - 1],
             pnums[p2nr.value - 1],
         ]
-        ngmesh.Add(netgen.meshing.Element2D(dict_region_names[index.value], vertices))
+        ngmesh.Add(netgen.meshing.Element2D(label_to_region[index.value][0], vertices))
 
     return ngmesh
 
@@ -520,7 +537,7 @@ def run_adapt(ngmesh, **kwargs):
         raise RuntimeError(f"Failed to initialize MMG2D structures. {code=}")
 
     # Initialize a MMG mesh structure from the Netgen mesh structure
-    mmgMesh, region_names, bc_names = init_mmgmesh_from_ngmesh(ngmesh, mmgMesh)
+    mmgMesh, label_to_region, bc_names = init_mmgmesh_from_ngmesh(ngmesh, mmgMesh)
 
     # Set integer parameters (IPARAM)
     for param_name, param_value in kwargs.items():
@@ -548,7 +565,7 @@ def run_adapt(ngmesh, **kwargs):
     else:
         # Initialize a MMG Netgen structure from the MMG mesh structure
         return_code = 1
-        new_ngmesh = init_ngmesh_from_mmgmesh(mmgMesh, region_names, bc_names)
+        new_ngmesh = init_ngmesh_from_mmgmesh(mmgMesh, label_to_region, bc_names)
 
     # Free MMG2D structures
     mmg2d.MMG2D_Free_all(
@@ -584,7 +601,7 @@ def run_lagrangian_motion(ngmesh):
         raise RuntimeError(f"Failed to initialize MMG2D structures. {code=}")
 
     # Initialize a mmg mesh structure from the netgen mesh structure, save region names information
-    mmgMesh, region_names = init_mmgmesh_from_ngmesh(ngmesh, mmgMesh)
+    mmgMesh, label_to_region = init_mmgmesh_from_ngmesh(ngmesh, mmgMesh)
 
     # Set some parameters
     code = mmg2d.MMG2D_Set_iparameter(mmgMesh, my_displacement, MMG2D_IPARAM_lag, 1)
@@ -599,7 +616,7 @@ def run_lagrangian_motion(ngmesh):
         print("BAD ENDING OF MMG2DLIB")
 
     # Initialize a mmg netgen structure from the mmg mesh structure, recover region names information
-    new_ngmesh = init_ngmesh_from_mmgmesh(mmgMesh, empty_metric, region_names)
+    new_ngmesh = init_ngmesh_from_mmgmesh(mmgMesh, empty_metric, label_to_region)
 
     # Free MMG2D structures
     mmg2d.MMG2D_Free_all(
