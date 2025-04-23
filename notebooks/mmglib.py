@@ -540,6 +540,16 @@ def run_adapt(ngmesh, **kwargs):
     mmgMesh, label_to_region, bc_names = init_mmgmesh_from_ngmesh(ngmesh, mmgMesh)
 
     # Set integer parameters (IPARAM)
+    if "debug" not in mmg_iparams:
+        param_id = mmg_iparams["debug"]
+        param_value = 0
+        if mmg2d.MMG2D_Set_iparameter(mmgMesh, mmgSol, param_id, param_value) != 1:
+            raise RuntimeError(f"Failed to set IPARAM {param_name} (ID {param_id})") 
+    if "verbose" not in mmg_iparams:
+        param_id = mmg_iparams["verbose"]
+        param_value = 0
+        if mmg2d.MMG2D_Set_iparameter(mmgMesh, mmgSol, param_id, param_value) != 1:
+            raise RuntimeError(f"Failed to set IPARAM {param_name} (ID {param_id})") 
     for param_name, param_value in kwargs.items():
         if param_name in mmg_iparams:
             param_id = mmg_iparams[param_name]
