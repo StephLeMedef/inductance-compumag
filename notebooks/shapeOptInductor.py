@@ -435,7 +435,9 @@ def create_plots(num_plots):
     ...     ax.set_title("Plot Title")
     >>> display_handle.update(fig)  # Dynamically update the display in Jupyter
     """
-    fig, axes = plt.subplots(1, num_plots, figsize=(10 * num_plots, 8))
+    cm = 1/2.54
+    fig, axes = plt.subplots(1, num_plots, figsize=(8*cm * num_plots, 7*cm))
+    plt.rcParams.update({'font.size': 10, 'lines.linewidth' : 0.5, 'lines.markersize': 2.0, 'grid.linewidth' : 0.3})
     if num_plots == 1:
         axes = [axes]
     for i, ax in enumerate(axes):
@@ -494,7 +496,7 @@ def update_plots(fig, axes, hdisplay, data, curve_labels, semilogy=False):
     for i, ax in enumerate(axes):
         ax.clear()  # Clear the current axis
         for j, (curve, label) in enumerate(zip(data[i], curve_labels[i])):
-            ax.plot(np.arange(len(curve)), curve, label=label, marker="o", linestyle="-", markersize=6)
+            ax.plot(np.arange(len(curve)), curve, label=label, marker="o", linestyle="-")
 
         # Dynamically set limits based on data
         ax.set_xlim(0, len(curve) - 1)

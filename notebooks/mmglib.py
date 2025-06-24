@@ -257,7 +257,7 @@ def init_mmgmesh_from_ngmesh(ngmesh, mmgMesh):
     for i, edge in enumerate(ngmesh.Elements1D()):
         p0, p1 = edge.points
         indices.add(edge.index)
-        label = get_index(edge.index, edge.index)
+        label = get_index(edge.index, 1)
         code = mmg2d.MMG2D_Set_edge(mmgMesh, p0.nr, p1.nr, label, i + 1)
         if code != 1:
             raise RuntimeError(f"Failed to set edge. {code=}")
@@ -292,7 +292,7 @@ def copy_ngmesh(ngmesh):
     pnums = []
     for i, point in enumerate(ngmesh.Points()):
         x, y, z = point.p
-        pnums.append(new_ngmesh.Add(netgen.meshing.MeshPoint(netgen.meshing.Pnt(x, y, 0))))
+        pnums.append(new_ngmesh.Add(netgen.meshing.MeshPoint(netgen.meshing.Pnt(x, y, z))))
 
     # Write Edges
     indices = set()

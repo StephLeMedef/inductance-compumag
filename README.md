@@ -15,15 +15,13 @@ Start by running the Jupyter notebooks in the `notebooks` folder.
     - mmg
       - `mmg2d.dll` : dll file related to remeshing free-shapes with Mmg
 - notebooks
-    - `FREEFORM.ipynb`, `PARAMETRIC.ipynb`, `REFERENCE.ipynb`, `TAYLOR-TESTS.ipynb` : runable Jupyter notebooks
+    - `ADAPTATIVE_MESH_DEFORMATION.ipynb`, `CONTROL_POINTS.ipynb`, `REFERENCE.ipynb`, `TAYLOR-TESTS.ipynb` : runable Jupyter notebooks
     - `mmglib.py` : binder to Mmg utilities
     - `shapeOptInductance.py` : module containing useful functions for shape optimization
 - `AUTHORS `
 - `LICENSE`
 - `Pipfile` : description of the environment (items can be installed with `pip`)
 - `README.md`
-
-**NB** The code has been tested with success on Windows 11. It should also run on Linux except for the free-form due to the compilation of Mmg library.
 
 ## Citation
 
@@ -39,16 +37,15 @@ Bibtex entry:
     month        = jan,
     year         = 2025,
     publisher    = {Zenodo},
-    version      = {v0.1},
+    version      = {v0.2},
     doi          = {10.5281/zenodo.14631426},
     url          = {https://doi.org/10.5281/zenodo.7701776}
     }
-
-**NB: version number and DOI must be adapted from [Zenodo's repository.](https://doi.org/10.5281/zenodo.7701776)** 
+ 
 
 ## License
 
-Copyright (C) 2025 Stéphane Gaydier (stephane.gaydier@grenoble-inp.org), Itaï Zehavi (itai.zehavi@ens-paris-saclay.fr), Théodore Cherrière (theodore.cherriere@centralesupelec.fr), Peter Gangl (peter.gangl@ricam.oeaw.ac.at).
+Copyright (C) 2025 Stéphane Gaydier (stephane.gaydier@g2elab.grenoble-inp.fr), Itaï Zehavi (itai.zehavi@ens-paris-saclay.fr), Théodore Cherrière (theodore.cherriere@centralesupelec.fr), Peter Gangl (peter.gangl@ricam.oeaw.ac.at).
 
 This program is free software: you can redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or any later version.
 
