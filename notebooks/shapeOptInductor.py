@@ -352,8 +352,8 @@ def gen_meshN(airgap, maxh=2e-3):
     geo = SplineGeometry()
     
     x_airgap = np.linspace(0, a/2, NControlPoints//2)
-    pnt_airgap_1 = [(x_airgap[i], airgap[i]) for i in range(NControlPoints//2)]
-    pnt_airgap_2 = [(x_airgap[i]+a/2+ba, airgap[i+NControlPoints//2]) for i in range(NControlPoints//2)]
+    pnt_airgap_1 = [(x_airgap[i], airgap[i]/2) for i in range(NControlPoints//2)]
+    pnt_airgap_2 = [(x_airgap[i]+a/2+ba, airgap[i+NControlPoints//2]/2) for i in range(NControlPoints//2)]
 
     pnts = pnt_airgap_1 +[
         #(0, e11 / 2),  # p1
@@ -446,7 +446,7 @@ def gen_meshN(airgap, maxh=2e-3):
     geo.SetMaterial(4, "air")
     ngmesh = geo.GenerateMesh(maxh=maxh)
 
-    return ngs.Mesh(ngmesh)
+    return ngs.Mesh(ngmesh), pnt_airgap_1, pnt_airgap_2
 
 
 def referenceVelocity(mesh):
@@ -501,6 +501,31 @@ def referenceVelocity(mesh):
 
     return v11, v12, v21, v22
 
+
+def referenceVelocityN(mesh, xPoints):
+    
+    dx = xPoints[1]-xPoints[0]
+    fesVelocity = ngs.VectorH1(mesh, dirichlet="airgap1|airgap2")
+    velocityList = []
+
+    def regSign(x):
+        p = 1e10
+        return 2 * ngs.atan(p*x)/ngs.pi
+    
+    def signedXDist(x,Xref, dx = dx):
+        return ngs.sqrt((x- Xref)**2)/dx
+
+    def nodeShapeFunction(x, Xref, dx = dx):
+        sd = signedXDist(x,Xref, dx = dx)
+        xi = (regSign(1-sd) +1 )/ 2
+        return xi * (1-sd)
+    
+    for i in range(len(xPoints)):
+        xRef = xPoints[i]
+        velocityList.append(ngs.GridFunction(fesVelocity))
+        velocityList[-1].Set(ngs.CF((0,nodeShapeFunction(ngs.x, xRef, dx = dx))), ngs.BND)
+
+    return velocityList
 
 ## DISPLAY
 
