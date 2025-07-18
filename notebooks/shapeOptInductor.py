@@ -343,6 +343,112 @@ def gen_mesh2(airgap, maxh=2e-3):
     return ngs.Mesh(ngmesh)
 
 
+def gen_meshN(airgap, maxh=2e-3):
+    
+    NControlPoints = len(airgap)
+    r = 0.04
+    maxhFine = maxh / 25
+    maxhMed = maxh / 5
+    geo = SplineGeometry()
+    
+    x_airgap = np.linspace(0, a/2, NControlPoints//2)
+    pnt_airgap_1 = [(x_airgap[i], airgap[i]) for i in range(NControlPoints//2)]
+    pnt_airgap_2 = [(x_airgap[i]+a/2+ba, airgap[i+NControlPoints//2]) for i in range(NControlPoints//2)]
+
+    pnts = pnt_airgap_1 +[
+        #(0, e11 / 2),  # p1
+        #(a / 2, e12 / 2),  # p2
+        (a / 2, e / 2 + ha / 2),  # p3
+        (a / 2 + ba, e / 2 + ha / 2),  # p4
+    ] + pnt_airgap_2 + [
+        #(a / 2 + ba, e21 / 2),  # p5
+        #(a + ba, e22 / 2),  # p6
+    (a + ba, e / 2 + ha / 2 + a / 2),  # p7
+        (0, e / 2 + ha / 2 + a / 2),  # p8
+        (a + ba, 0),  # p001
+        (a + ba, e / 2 + ha / 2),  # p002
+        (0, e / 2 + ha / 2),  # p003
+        (0, 0),  # p00
+        (r, 0),  # p01
+        (0, r),  # p02
+        (a / 2, 0),  # p03
+        (a / 2 + ba, 0),  # p04
+        (r, r),  # p05
+    ]
+
+    pointH = [maxhFine]*(NControlPoints//2) + [
+        #maxh, 
+        #maxhFine,
+        maxhFine,
+        maxhFine,] + [maxhFine]*(NControlPoints//2) + [
+        #maxhFine,
+        #maxhFine,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxh,
+        maxhFine,
+        maxhFine,
+        maxh,
+    ]
+
+    pAirgap1 = [geo.AppendPoint(*pnts[i], pointH[i]) for i in range(0, NControlPoints//2)]
+    (p3, p4) = [geo.AppendPoint(*pnts[i], pointH[i]) for i in range(NControlPoints//2,NControlPoints//2+2)]
+    pAirgap2 = [geo.AppendPoint(*pnts[i], pointH[i]) for i in range(NControlPoints//2+2, NControlPoints+2)]
+
+    (p7, p8, p001, p002, p003, p00, p01, p02, p03, p04, p05) = [
+        geo.AppendPoint(*pnts[i], pointH[i]) for i in range( NControlPoints+2, len(pnts))
+    ]
+
+    # List of lines with boundary conditions and domains
+    lines = [[["line", pAirgap1[i], pAirgap1[i+1]], {"bc": "airgap1", "leftdomain": 2, "rightdomain": 4, "maxh": maxhFine}] for i in range(NControlPoints//2-1)] +[
+        
+        #[["line", p1, p2], {"bc": "airgap1", "leftdomain": 2, "rightdomain": 4, "maxh": maxhFine}],
+        #[["line", p2, p3], {"bc": "optimVert", "leftdomain": 2, "rightdomain": 3, "maxh": maxhMed}],
+        [["line", pAirgap1[-1], p3], {"bc": "optimVert", "leftdomain": 2, "rightdomain": 3, "maxh": maxhMed}],
+        [["line", p3, p4], {"bc": "default", "leftdomain": 2, "rightdomain": 3, "maxh": maxhMed}],
+        [["line", p4, pAirgap2[0]], {"bc": "optimVert", "leftdomain": 2, "rightdomain": 3, "maxh": maxhMed}],
+        #[["line", p4, p5], {"bc": "optimVert", "leftdomain": 2, "rightdomain": 3, "maxh": maxhMed}],
+        ] + [[["line", pAirgap2[i], pAirgap2[i+1]], {"bc": "airgap2", "leftdomain": 2, "rightdomain": 1, "maxh": maxhFine}] for i in range(NControlPoints//2-1)] +[
+        #[["line", p5, p6], {"bc": "airgap2", "leftdomain": 2, "rightdomain": 1, "maxh": maxhFine}],
+        [["line", pAirgap2[-1], p002], {"bc": "front", "leftdomain": 2, "rightdomain": 1, "maxh": maxhMed}],
+        [["line", p002, p7], {"bc": "front", "leftdomain": 2, "rightdomain": 1, "maxh": maxhMed}],
+        [["line", p7, p8], {"bc": "front", "leftdomain": 2, "rightdomain": 1, "maxh": maxhMed}],
+        [["line", p00, p03], {"bc": "domainHor", "leftdomain": 4, "rightdomain": 0, "maxh": maxhFine}],
+        [["line", p03, p04], {"bc": "segment1", "leftdomain": 3, "rightdomain": 0, "maxh": maxhMed}],
+        [["line", p04, p001], {"bc": "domainHor", "leftdomain": 1, "rightdomain": 0, "maxh": maxhFine}],
+        [["line", p001, p01], {"bc": "segment1", "leftdomain": 1, "rightdomain": 0}],
+        [["line", p02, p8], {"bc": "segment2", "leftdomain": 1, "rightdomain": 0}],
+        [["line", p8, p003], {"bc": "domainVert", "leftdomain": 2, "rightdomain": 0, "maxh": maxhMed}],
+        #[["line", p003, p1], {"bc": "domainVert", "leftdomain": 2, "rightdomain": 0, "maxh": maxhMed}],
+        [["line", p003, pAirgap1[0]], {"bc": "domainVert", "leftdomain": 2, "rightdomain": 0, "maxh": maxhMed}],
+        #[["line", p1, p00], {"bc": "domainVert", "leftdomain": 4, "rightdomain": 0, "maxh": maxhMed}],
+        [["line", pAirgap1[0], p00], {"bc": "domainVert", "leftdomain": 4, "rightdomain": 0, "maxh": maxhMed}],
+        #[["line", p04, p5], {"bc": "optimVert", "leftdomain": 3, "rightdomain": 1, "maxh": maxhMed}],
+        [["line", p04, pAirgap2[0]], {"bc": "optimVert", "leftdomain": 3, "rightdomain": 1, "maxh": maxhMed}],
+        #[["line", p2, p03], {"bc": "optimVert", "leftdomain": 3, "rightdomain": 4, "maxh": maxhMed}],
+        [["line", pAirgap1[-1], p03], {"bc": "optimVert", "leftdomain": 3, "rightdomain": 4, "maxh": maxhMed}],
+        [["spline3", p01, p05, p02], {"bc": "arc", "leftdomain": 1, "rightdomain": 0}],
+    ]
+
+    # Append all lines to the geometry
+    for line, props in lines:
+        geo.Append(line, **props)
+
+    # Set materials and meshing parameters
+    geo.SetMaterial(1, "air")
+    geo.SetMaterial(2, "core")
+    geo.SetMaterial(3, "coil")
+    geo.SetMaterial(4, "air")
+    ngmesh = geo.GenerateMesh(maxh=maxh)
+
+    return ngs.Mesh(ngmesh)
+
+
 def referenceVelocity(mesh):
     """
     Generate reference velocity fields for the air gap regions of a mesh. This is useful to compute the parametric sensitivities
