@@ -430,6 +430,88 @@ def referenceVelocity(mesh, xPoints):
 
     return yDisplacementList
 
+
+##################################################################################################################################
+## OPTIMIZATION
+
+def gradient_descent(fun : callable,               # function to minimize
+                     dfun : callable,              # gradient
+                     x : np.array,                  # initial value
+                     xlb : float | list = -np.inf, # lower bound(s)
+                     xub : float | list = np.inf,  # upper bound(s)
+                     step : float = 1.,            # step size     
+                     precond : bool = True,        # gradient preconditioning
+                     # convergence
+                     iter_max : int = 50,          # max number of iterations
+                     rstep_min : float = 1e-5,     # minimum step size relative to step
+                     tol : float = 1e-6,           # absolute tolerance on sqrt(|grad * descent|)
+                     # step update
+                     coeff_armijo : float = 0.1,   # Armijo's coefficient
+                     step_increase : float = 1.2,  # increase factor of the step when accepted
+                     step_decrease : float = 0.5,   # decrease factor of the step when rejected
+                     # inspect
+                     verbosity : int = 1           # verbosity level (0 = silent, 3 = detailed)
+                     ):
+    
+    if verbosity >=1 :
+        print(f"---- Start gradient descent")
+    x = np.minimum(xub, np.maximum(xlb, x))
+    grad = dfun(x)
+    result = {}
+    result["x"] = [x]
+    result["step"] = [step]
+    result["fun"] = [fun(x)]
+    result["stop_criterion"] = [np.sqrt(np.dot(grad, step * grad))]
+    result["n_fun"] = 0 
+    if verbosity >=1 : 
+        print(f"it {result["n_fun"]} | fun = {result["fun"][-1]:.5e} | step = {step:.2e}")
+    while result["n_fun"] < iter_max :
+        result["n_fun"] += 1
+        result["step"].append(step)
+        # update and project
+        if precond : 
+            precond_grad = grad / np.max(np.abs(grad))
+            xTest = np.minimum(xub, np.maximum(xlb, x - step * precond_grad))
+            ddir = xTest - x # a second time to forget the grad at the bound points
+            precond_grad = precond_grad / np.max(np.sqrt(-precond_grad*ddir/step)) 
+            xTest = np.minimum(xub, np.maximum(xlb, x - step * precond_grad))
+        else : xTest = xTest = np.minimum(xub, np.maximum(xlb, x - step * grad))
+        if verbosity >=3 :  print(f"{x = }")
+
+        ddir = xTest - x  # descent direction
+        funTest = fun(xTest)
+
+        # check decrement:
+        if funTest < result["fun"][-1] + coeff_armijo * np.dot(grad, ddir): # accept
+            result["stop_criterion"].append(np.sqrt(-np.dot(grad, ddir)))
+            x = xTest
+            grad = dfun(x)
+            result["x"] .append(x)
+            result["fun"].append(funTest)
+            step *= step_increase
+            if verbosity >=1 : 
+                print(f"it {result["n_fun"]} | fun = {funTest:.5e} | step = {step:.2e} | crit = {result["stop_criterion"][-1]:.2e} (accepted ✅)")
+
+        else :  # reject
+            step *= step_decrease
+            if verbosity >=2 : 
+                print(f"it {result["n_fun"]} | fun = {funTest:.5e} | step = {step:.2e} | crit = {result["stop_criterion"][-1]:.2e} (rejected ❌)")
+
+        # stop criteria
+        if result["stop_criterion"][-1] < tol:
+            result["status"] = 0
+            if verbosity >=1 :  print(f"---- Stopped after {result["n_fun"]} iterations because sqrt(|grad * descent|) < tol.")
+            return result
+        
+        if step / result["step"][0] < rstep_min:
+            result["status"] = 1
+            if verbosity >=1 :  print(f"---- Stopped after {result["n_fun"]} iterations because step/step0 < rstep_min size to small.")
+            return result
+        
+    result["status"] = 2
+    if verbosity >=1 :  print(f"---- Stopped after {result["n_fun"]} because maximum number of iterations reached.")
+    return result
+
 ##################################################################################################################################
 ## DISPLAY
 
