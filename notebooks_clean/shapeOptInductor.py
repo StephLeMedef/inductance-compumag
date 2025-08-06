@@ -403,7 +403,38 @@ def gen_meshN(airgap, maxh=2e-3):
     return ngs.Mesh(ngmesh), pnt_airgap_1, pnt_airgap_2
 
 
-def referenceVelocity(mesh, xPoints):
+def referenceVelocity(mesh : ngs.Mesh,
+                      xPoints : list[float] | np.ndarray
+                      ) -> list[ngs.GridFunction]:
+    """
+    Compute a list of elementary node displacements (also called velocities) 
+    at the airgap boundary associated with unit vertical displacements of 
+    control points located along the x-axis.
+
+    Parameters
+    ----------
+    mesh : ngsolve.Mesh
+        The finite element mesh of the geometry, which must include boundaries 
+        named "airgap1" and "airgap2" (used as reference boundaries for the velocity field).
+    
+    xPoints : list or array-like of float
+        The x-coordinates of the control points on the airgap boundary where 
+        elementary displacements are defined. Assumes uniform spacing.
+
+    Returns
+    -------
+    yDisplacementList : list of ngsolve.GridFunction
+        A list of vector-valued GridFunctions representing the velocity fields 
+        (or displacement) corresponding to unit vertical displacements 
+        at each control point in `xPoints`. Each GridFunction has nonzero 
+        displacement in the y-direction (second component) near the associated 
+        control point and zero elsewhere.
+
+    Note
+    ----
+    - Shape functions are 1 at the associated control point, zero at the neighboring 
+    control points and linear in between
+    """
     
     dx = xPoints[1]-xPoints[0] # assume regular spacing
     fesVelocity = ngs.VectorH1(mesh, dirichlet="airgap1|airgap2")
@@ -440,7 +471,7 @@ def gradient_descent(fun : callable,               # function to minimize
                      xlb : float | list = -np.inf, # lower bound(s)
                      xub : float | list = np.inf,  # upper bound(s)
                      step : float = 1.,            # step size     
-                     precond : bool = True,        # gradient preconditioning
+                     precond : bool = True,        # preconditioning of descent direction (recommended)
                      # convergence
                      iter_max : int = 50,          # max number of iterations
                      rstep_min : float = 1e-5,     # minimum step size relative to step
@@ -452,7 +483,111 @@ def gradient_descent(fun : callable,               # function to minimize
                      # inspect
                      verbosity : int = 1           # verbosity level (0 = silent, 3 = detailed)
                      ):
+    """
+    Perform a simple projected gradient descent with optional preconditioning 
+    and Armijo backtracking line search.
+
+    This routine minimizes a scalar objective function `fun` with known gradient `dfun`
+    under optional box constraints (bounds on `x`). The descent direction is 
+    optionally preconditioned by scaling the gradient to mitigate ill-conditioning (recommended).
+
+    Parameters
+    ----------
+    fun : callable
+        The objective function to minimize. Must take a single argument `x` (array-like).
     
+    dfun : callable
+        The gradient of the objective function. Must take a single argument `x` and 
+        return a NumPy array of the same shape.
+
+    x : np.ndarray
+        Initial guess for the variables.
+
+    xlb : float or list or np.ndarray, optional
+        Lower bounds for each variable. Can be a scalar or array of same shape as `x`.
+
+    xub : float or list or np.ndarray, optional
+        Upper bounds for each variable. Can be a scalar or array of same shape as `x`.
+
+    step : float, optional
+        Initial step size used in the descent.
+
+    precond : bool, optional
+        Whether to apply simple gradient preconditioning (scale by max absolute value).
+
+    iter_max : int, optional
+        Maximum number of iterations.
+
+    rstep_min : float, optional
+        Minimum allowed ratio between current and initial step size. Used to detect 
+        excessively small steps.
+
+    tol : float, optional
+        Convergence tolerance based on the square root of the dot product between 
+        gradient and descent direction (`sqrt(|grad · d|)`).
+
+    coeff_armijo : float, optional
+        Armijo condition coefficient (must be in (0, 1)). Controls how much decrease 
+        in function value is required to accept a step.
+
+    step_increase : float, optional
+        Factor by which the step size is increased after a successful iteration.
+
+    step_decrease : float, optional
+        Factor by which the step size is decreased after an unsuccessful iteration.
+
+    verbosity : int, optional
+        Level of console output:
+        - 0: Silent
+        - 1: Summary (recommended)
+        - 2: Includes rejected steps
+        - 3: Full debug info
+
+    Returns
+    -------
+    result : dict
+        A dictionary containing:
+        
+        - `x` : list of np.ndarray  
+          Sequence of iterates.
+        
+        - `fun` : list of float  
+          Objective function values at each accepted point.
+
+        - `step` : list of float  
+          Step size at each iteration.
+
+        - `stop_criterion` : list of float  
+          Value of `sqrt(|grad · descent|)` used to monitor convergence.
+
+        - `n_fun` : int  
+          Number of function evaluations.
+
+        - `status` : int  
+          Convergence status code:
+          
+          | Code | Meaning                                                               |
+          |------|-----------------------------------------------------------------------|
+          | 0    | ✅ Converged: `sqrt(|grad · descent|)` < `tol`                        |
+          | 1    | ❌ Step size too small: `step / step0` < `rstep_min`                  |
+          | 2    | ❌ Max iterations reached                                             |
+
+    Notes
+    -----
+    - All updates are projected onto the bounds `[xlb, xub]`.
+    - Preconditioning scales the gradient direction to mitigate ill-conditioning.
+    - Armijo backtracking ensures sufficient decrease in the function.
+    - This implementation supports box-constrained optimization only.
+
+    Example
+    -------
+    >>> def f(x): return np.sum(x**2)
+    >>> def df(x): return 2*x
+    >>> x0 = np.array([1.0, -1.5])
+    >>> result = gradient_descent(f, df, x0, xlb=-2.0, xub=2.0)
+    >>> result["x"][-1]
+    array([0., 0.])
+    """
     if verbosity >=1 :
         print(f"---- Start gradient descent")
     x = np.minimum(xub, np.maximum(xlb, x))
@@ -468,11 +603,13 @@ def gradient_descent(fun : callable,               # function to minimize
     while result["n_fun"] < iter_max :
         result["n_fun"] += 1
         result["step"].append(step)
+
         # update and project
-        if precond : 
+        if precond : # preconditioning
             precond_grad = grad / np.max(np.abs(grad))
             xTest = np.minimum(xub, np.maximum(xlb, x - step * precond_grad))
-            ddir = xTest - x # a second time to forget the grad at the bound points
+            # a second time to disqualify the grad associated to bound-constrained nodes
+            ddir = xTest - x 
             precond_grad = precond_grad / np.max(np.sqrt(-precond_grad*ddir/step)) 
             xTest = np.minimum(xub, np.maximum(xlb, x - step * precond_grad))
         else : xTest = xTest = np.minimum(xub, np.maximum(xlb, x - step * grad))
