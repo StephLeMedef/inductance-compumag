@@ -596,3 +596,40 @@ def update_plots(fig, axes, hdisplay, data, curve_labels, semilogy=False):
 
     fig.tight_layout()
     hdisplay.update(fig)  # Update the display with the new plot
+
+
+def rot(a):
+    """
+    Compute the rotational (curl) of a scalar or vector field in 2D.
+
+    This function applies the predefined rotation matrix `R` (representing a -90° rotation)
+    to the gradient of the input field `a`. The computation uses the `ngs.grad` function
+    from NGSolve.
+
+    Parameters
+    ----------
+    a : ngs.fem.CoefficientFunction
+        Input field (scalar or vector) defined in NGSolve for which the rotational
+        (curl) is to be computed.
+
+    Returns
+    -------
+    ngs.fem.CoefficientFunction
+        The result of applying the rotation matrix `R` to the gradient of the input field `a`.
+
+    Notes
+    -----
+    - The rotation matrix `R` is defined as a global constant in the module:
+      ```
+      R = ngs.CoefficientFunction((0, 1, -1, 0), dims=(2, 2))  # -90° rotation matrix
+      ```
+    - This function assumes a 2D context, where the rotational is a perpendicular vector field.
+
+    Examples
+    --------
+    >>> from ngsolve import x, y, grad, CoefficientFunction
+    >>> a = x*y  # Example coefficient function
+    >>> curl_a = rot(a)
+    >>> print(curl_a)
+    """
+    return R * ngs.grad(a)
